@@ -1,5 +1,5 @@
 # wickedhot
-Wickded easy one-hot-encoder in pure python with no dependencies
+Wicked easy one-hot-encoder in pure python with no dependencies
 
 Properties
 
