@@ -19,7 +19,7 @@ setup_args = dict(
     packages=find_packages(),
     author='David Johnston',
     author_email='dave31415@gmail.com',
-    keywords=['one-hot encoding','machine learning'],
+    keywords=['one-hot encoding', 'machine learning'],
     url='https://github.com/dave31415/wickedhot',
     download_url='https://pypi.org/project/wickedhot/'
 )
@@ -29,7 +29,5 @@ install_requires = [
 ]
 
 if __name__ == '__main__':
-    setup(include_package_data=True,
-	  **setup_args, 
-	  install_requires=install_requires)
+    setup(include_package_data=True, install_requires=install_requires, **setup_args)
 
