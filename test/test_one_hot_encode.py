@@ -1,4 +1,4 @@
-from one_hot import one_hot_encode as ohe
+from wickedhot import one_hot_encode as ohe
 
 
 def test_get_one_hot_encoder_dicts_from_data_stream_with_ties():

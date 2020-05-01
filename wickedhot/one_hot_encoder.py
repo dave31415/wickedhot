@@ -1,4 +1,4 @@
-from one_hot import one_hot_encode as ohe
+from wickedhot import one_hot_encode as ohe
 import json
 
 
@@ -24,25 +24,30 @@ class OneHotEncoder:
                                                                                     self.categorical_n_levels_dict)
         self._get_encoder_decoder()
 
-    def _package_data(self):
+    def package_data(self):
         data = {'max_levels_default': self.max_levels_default,
                 'numeric_cols': self.numeric_cols,
                 'categorical_n_levels_dict': self.categorical_n_levels_dict,
                 'one_hot_encoder_dicts': self.one_hot_encoder_dicts}
+
         return data
 
     def save(self, json_file_name):
         with open(json_file_name, 'w') as fp:
-            json.dump(self._package_data(), fp)
+            json.dump(self.package_data(), fp)
+
+    def load_from_packaged_data(self, data_object):
+        self.max_levels_default = data_object['max_levels_default']
+        self.numeric_cols = data_object['numeric_cols']
+        self.one_hot_encoder_dicts = data_object['one_hot_encoder_dicts']
+
+        self._get_encoder_decoder()
 
     def load_from_file(self, json_file_name):
         with open(json_file_name, 'r') as fp:
-            data = json.load(fp)
-            self.max_levels_default = data['max_levels_default']
-            self.numeric_cols = data['numeric_cols']
-            self.one_hot_encoder_dicts = data['one_hot_encoder_dicts']
+            packaged_data = json.load(fp)
 
-        self._get_encoder_decoder()
+        self.load_from_packaged_data(packaged_data)
 
     def _get_encoder_decoder(self):
         self.index_lookup = ohe.get_key_val_pair_to_index_lookup(self.one_hot_encoder_dicts, self.numeric_cols)
@@ -70,15 +75,15 @@ class OneHotEncoder:
         idx, _ = ohe.get_index(key, value, self.index_lookup)
         return idx
 
-    def encode_data_stream(self, data):
+    def encode_data_stream(self, stream):
         # generator
-        return (self.encode_row(row) for row in data)
+        return (self.encode_row(row) for row in stream)
 
-    def encode_data(self, data):
-        return list(self.encode_data_stream(data))
+    def encode_data(self, stream):
+        return list(self.encode_data_stream(stream))
 
-    def decode_data_stream(self, encoded_data):
-        return (self.decode_row(row) for row in encoded_data)
+    def decode_data_stream(self, encoded_data_stream):
+        return (self.decode_row(row) for row in encoded_data_stream)
 
-    def decode_data(self, encoded_data):
-        return list(self.decode_data_stream(encoded_data))
+    def decode_data(self, encoded_data_stream):
+        return list(self.decode_data_stream(encoded_data_stream))

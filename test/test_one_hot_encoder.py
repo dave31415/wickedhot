@@ -1,4 +1,4 @@
-from one_hot.one_hot_encoder import OneHotEncoder
+from wickedhot.one_hot_encoder import OneHotEncoder
 from tempfile import NamedTemporaryFile
 
 
