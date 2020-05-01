@@ -20,8 +20,8 @@ setup_args = dict(
     author='David Johnston',
     author_email='dave31415@gmail.com',
     keywords=['one-hot encoding','machine learning'],
-    url='https://github.com/dave31415/one-hot',
-    download_url='https://pypi.org/project/brunodb/'
+    url='https://github.com/dave31415/wickedhot',
+    download_url='https://pypi.org/project/wickedhot/'
 )
 
 install_requires = [
