@@ -206,7 +206,7 @@ def test_inversion_more_complicated():
 
 
 def test_inversion_more_complicated_with_max_levels():
-    encoder = OneHotEncoder({'animal': 2 , 'color': 2}, ['weight', 'height'])
+    encoder = OneHotEncoder({'animal': 2, 'color': 2}, ['weight', 'height'])
 
     data = [{'animal': 'cat', 'color': 'blue', 'weight': 6.0, 'height': 88.9},
             {'animal': 'cat', 'color': 'red', 'weight': 3.0, 'height': 44.9},
@@ -257,3 +257,13 @@ def test_inversion_more_complicated_with_max_levels_diff():
                 {'height': 33, 'weight': 99.9, 'animal': 'mouse', 'color': 'UNKNOWN_CATEGORICAL_LEVEL'}]
 
     assert data_decoded == expected
+
+    # check the package
+    packaged = encoder.package_data()
+
+    expected = {'max_levels_default': 10000,
+                'numeric_cols': ['weight', 'height'],
+                'categorical_n_levels_dict': {'animal': 2, 'color': 1},
+                'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}}}
+
+    assert packaged == expected
