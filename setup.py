@@ -11,12 +11,13 @@ with open('HISTORY.md') as history_file:
 
 setup_args = dict(
     name='wickedhot',
-    version='0.1.3',
+    version='0.1.4',
     description='Wicked easy one-hot-encoding in pure python with (mostly) no dependencies',
     long_description_content_type="text/markdown",
     long_description=README + '\n\n' + HISTORY,
     license='MIT',
     packages=find_packages(),
+    include_package_data=True,
     author='David Johnston',
     author_email='dave31415@gmail.com',
     keywords=['one-hot encoding', 'machine learning'],
