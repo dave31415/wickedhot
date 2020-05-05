@@ -4,7 +4,8 @@ from wickedhot.form_generator import generate_form
 
 def test_form_generation():
 
-    stats = {'weight': {'median': 160.5}, 'height': {'median': 6.0}}
+    stats = {'weight': {'median': 160.5, 'min': 55.0, 'max': 564.2},
+             'height': {'median': 6.0,  'min': 4.5, 'max': 7.5}}
 
     # can also try with stats = None
     # stats = None

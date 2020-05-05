@@ -44,12 +44,17 @@ def generate_alpaca_index(form_data=None, index_file=None):
 def encoder_package_to_schema(encoder_package):
 
     properties = {}
+    stats = encoder_package['numeric_stats']
     for field in encoder_package['numeric_cols']:
         properties[field] = {
                 "type": "number",
                 "title": field.capitalize(),
                 "required": True
         }
+
+        if stats is not None:
+            properties[field]['minimum'] = stats[field]['min']
+            properties[field]['maximum'] = stats[field]['max']
 
     encoder_dicts = encoder_package['one_hot_encoder_dicts']
 
@@ -94,7 +99,8 @@ def encoder_package_to_options(encoder_package):
         fields[field] = {
             "type": "select",
             # "helper": "Select %s" % field,
-            "optionLabels": levels
+            "optionLabels": levels,
+            "sort": False
         }
 
     options = {
