@@ -1,4 +1,6 @@
 from collections import Counter
+from statistics import median
+from wickedhot.res_sample import update_res_samples, initialize_res_samples
 
 unknown_level_value = 'UNKNOWN_CATEGORICAL_LEVEL'
 
@@ -126,3 +128,33 @@ def fill_in_unknown_levels(decoded_line, all_cols):
     for k in all_cols:
         if k not in decoded_line:
             decoded_line[k] = unknown_level_value
+
+
+def get_numeric_stats(stream_of_dicts, numeric_cols, random_generator):
+    num_samples = 100
+    res_samples = initialize_res_samples(numeric_cols)
+
+    numeric_stats = {}
+    for field in numeric_cols:
+        numeric_stats[field] = {'sum': 0.0,
+                                'min': 1e12,
+                                'max': -1e12}
+
+    num = 0
+    for num, row in enumerate(stream_of_dicts):
+        for field in numeric_cols:
+            value = row[field]
+            numeric_stats[field]['sum'] += value
+            numeric_stats[field]['min'] = min(value, numeric_stats[field]['min'])
+            numeric_stats[field]['max'] = max(value, numeric_stats[field]['max'])
+
+            update_res_samples(res_samples, num, field, value, num_samples, random_generator)
+
+    num += 1
+
+    for field in numeric_cols:
+        numeric_stats[field]['mean'] = numeric_stats[field]['sum']/num
+        numeric_stats[field]['median'] = median(res_samples[field])
+        del numeric_stats[field]['sum']
+
+    return numeric_stats

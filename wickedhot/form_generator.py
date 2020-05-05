@@ -3,6 +3,7 @@ import os
 import json
 from wickedhot.one_hot_encode import unknown_level_value
 
+
 def get_templates_text():
     template_dir = os.path.realpath(os.path.dirname(__file__) + '/../templates')
     template_files = {'alpaca_index': 'alpaca_index.html',
@@ -116,7 +117,12 @@ def encoder_package_to_form_data(encoder_package):
     schema = encoder_package_to_schema(encoder_package)
     options = encoder_package_to_options(encoder_package)
 
-    data = {field: 0 for field in encoder_package['numeric_cols']}
+    stats = encoder_package['numeric_stats']
+
+    if stats is None:
+        data = {field: 0 for field in encoder_package['numeric_cols']}
+    else:
+        data = {field: "%0.2f" % stats[field]['median'] for field in encoder_package['numeric_cols']}
 
     form_data = {"schema": schema,
                  "options": options,

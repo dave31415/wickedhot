@@ -1,5 +1,6 @@
-from wickedhot import one_hot_encode as ohe
 import json
+from random import Random
+from wickedhot import one_hot_encode as ohe
 
 
 class OneHotEncoder:
@@ -11,6 +12,7 @@ class OneHotEncoder:
         self.encoder = None
         self.decoder = None
         self.index_lookup = None
+        self.numeric_stats = None
         if isinstance(categorical_cols, list):
             self.categorical_n_levels_dict = {k: self.max_levels_default for k in categorical_cols}
         elif isinstance(categorical_cols, dict):
@@ -24,11 +26,19 @@ class OneHotEncoder:
                                                                                     self.categorical_n_levels_dict)
         self._get_encoder_decoder()
 
+    def add_numeric_stats(self, stream_of_dicts):
+
+        random_generator = Random()
+        random_generator.seed(265472)
+
+        self.numeric_stats = ohe.get_numeric_stats(stream_of_dicts, self.numeric_cols, random_generator)
+
     def package_data(self):
         data = {'max_levels_default': self.max_levels_default,
                 'numeric_cols': self.numeric_cols,
                 'categorical_n_levels_dict': self.categorical_n_levels_dict,
-                'one_hot_encoder_dicts': self.one_hot_encoder_dicts}
+                'one_hot_encoder_dicts': self.one_hot_encoder_dicts,
+                'numeric_stats': self.numeric_stats}
 
         return data
 

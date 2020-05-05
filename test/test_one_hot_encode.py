@@ -1,4 +1,5 @@
 from wickedhot import one_hot_encode as ohe
+from random import Random
 
 
 def test_get_one_hot_encoder_dicts_from_data_stream_with_ties():
@@ -112,3 +113,29 @@ def test_get_one_hot_encoder_dicts_from_data_stream():
                 'color': {'blue': 0, 'red': 1}}
 
     assert encoders == expected
+
+
+def test_get_numeric_stats():
+    rand_generator = Random()
+    rand_generator.seed(42)
+
+    stream = [{'a': 0.0, 'b': 10.0, 'c': 100.0, 'd': 'foo'},
+              {'a': 1.0, 'b': -10.0, 'c': 600.0, 'd': 'foo'},
+              {'a': 5.0, 'b': 90.0, 'c': -1000.0, 'd': 'foo'}]
+
+    numeric_stats = ohe.get_numeric_stats(stream, ['a', 'b', 'c'], rand_generator)
+
+    expected = {'a': {'mean': 2.0,
+                      'min': 0.0,
+                      'max': 5.0,
+                      'median': 1.0},
+                'b': {'mean': 30.0,
+                      'min': -10.0,
+                      'max': 90.0,
+                      'median': 10.0},
+                'c': {'mean': -100.0,
+                      'min': -1000,
+                      'max': 600.0,
+                      'median': 100.0}}
+
+    assert numeric_stats == expected

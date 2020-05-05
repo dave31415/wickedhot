@@ -232,7 +232,7 @@ def test_inversion_more_complicated_with_max_levels():
     assert data_decoded == expected
 
 
-def test_inversion_more_complicated_with_max_levels_diff():
+def run_example(stats=False):
     encoder = OneHotEncoder({'animal': 2, 'color': 1}, ['weight', 'height'])
 
     data = [{'animal': 'cat', 'color': 'blue', 'weight': 6.0, 'height': 88.9, 'extra_junk': 'blah'},
@@ -258,12 +258,37 @@ def test_inversion_more_complicated_with_max_levels_diff():
 
     assert data_decoded == expected
 
+    # add number stats?
+    if stats:
+        encoder.add_numeric_stats(data)
+
     # check the package
     packaged = encoder.package_data()
+    return packaged
+
+
+def test_inversion_more_complicated_with_max_levels_diff():
+    packaged = run_example(stats=False)
 
     expected = {'max_levels_default': 10000,
                 'numeric_cols': ['weight', 'height'],
                 'categorical_n_levels_dict': {'animal': 2, 'color': 1},
-                'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}}}
+                'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}},
+                'numeric_stats': None}
+
+    assert packaged == expected
+
+
+def test_inversion_more_complicated_with_max_levels_diff_and_numeric_stats():
+    packaged = run_example(stats=True)
+
+    stats = {'weight': {'min': 0.0, 'max': 99.9, 'mean': 17.62857142857143, 'median': 5.5},
+             'height': {'min': 2.5, 'max': 3233.2, 'mean': 589.2285714285715, 'median': 55.5}}
+
+    expected = {'max_levels_default': 10000,
+                'numeric_cols': ['weight', 'height'],
+                'categorical_n_levels_dict': {'animal': 2, 'color': 1},
+                'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}},
+                'numeric_stats': stats}
 
     assert packaged == expected
