@@ -31,5 +31,5 @@ install_requires = [
 ]
 
 if __name__ == '__main__':
-    setup(include_package_data=True, install_requires=install_requires, **setup_args)
+    setup(install_requires=install_requires, **setup_args)
 
