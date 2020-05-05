@@ -5,13 +5,13 @@ from setuptools import setup, find_packages
 
 with open('README.md') as readme_file:
     README = readme_file.read()
-
+.
 with open('HISTORY.md') as history_file:
     HISTORY = history_file.read()
 
 setup_args = dict(
     name='wickedhot',
-    version='0.1.2',
+    version='0.1.3',
     description='Wicked easy one-hot-encoding in pure python with (mostly) no dependencies',
     long_description_content_type="text/markdown",
     long_description=README + '\n\n' + HISTORY,
