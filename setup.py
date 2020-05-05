@@ -11,8 +11,8 @@ with open('HISTORY.md') as history_file:
 
 setup_args = dict(
     name='wickedhot',
-    version='0.1.1',
-    description='Wicked easy one-hot-encoding in pure python with no dependencies',
+    version='0.1.2',
+    description='Wicked easy one-hot-encoding in pure python with (mostly) no dependencies',
     long_description_content_type="text/markdown",
     long_description=README + '\n\n' + HISTORY,
     license='MIT',
@@ -25,7 +25,8 @@ setup_args = dict(
 )
 
 install_requires = [
-    'pytest'
+    'pytest',
+    'jinja2'
 ]
 
 if __name__ == '__main__':

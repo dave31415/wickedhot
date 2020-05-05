@@ -5,7 +5,7 @@ from wickedhot.one_hot_encode import unknown_level_value
 
 
 def get_templates_text():
-    template_dir = os.path.realpath(os.path.dirname(__file__) + '/../templates')
+    template_dir = os.path.realpath(os.path.dirname(__file__) + '/templates')
     template_files = {'alpaca_index': 'alpaca_index.html',
                       'alpaca_form': 'alpaca_form.html',
                       'alpaca_header': 'alpaca_header.html',
