@@ -115,7 +115,7 @@ def encoder_package_to_form_data(encoder_package, post_url=None):
     if stats is None:
         data = {field: 0 for field in encoder_package['numeric_cols']}
     else:
-        data = {field: "%0.2f" % stats[field]['median'] for field in encoder_package['numeric_cols']}
+        data = {field: float("%0.2f" % stats[field]['median']) for field in encoder_package['numeric_cols']}
 
     form_data = {"schema": schema,
                  "options": options,
@@ -125,12 +125,18 @@ def encoder_package_to_form_data(encoder_package, post_url=None):
     return form_data
 
 
-def encoder_package_to_form_elements(encoder_package, post_url=None):
+def encoder_package_to_form_elements(encoder_package, post_url=None, initial_values=None):
     form_data = encoder_package_to_form_data(encoder_package, post_url=post_url)
+    if initial_values is not None:
+        form_data['data'] = initial_values
+
     header_text, form_div = form_data_to_form_elements(form_data)
     return header_text, form_div
 
 
-def encoder_package_to_html_page(encoder_package, post_url=None):
+def encoder_package_to_html_page(encoder_package, post_url=None, initial_values=None):
     form_data = encoder_package_to_form_data(encoder_package, post_url=post_url)
+    if initial_values is not None:
+        form_data['data'] = initial_values
+
     return form_data_to_html_page(form_data)
