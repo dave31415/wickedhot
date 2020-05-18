@@ -8,4 +8,5 @@ Properties
 * Simple handling of unseen categorical levels
 * Unobtrusive handling of numerical values
 * Built in serialization and persistence of encoder
+* Html form generation capability for use in web apps
 * Well tested
