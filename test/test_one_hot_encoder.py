@@ -292,3 +292,44 @@ def test_inversion_more_complicated_with_max_levels_diff_and_numeric_stats():
                 'numeric_stats': stats}
 
     assert packaged == expected
+
+
+def test_html_form():
+    encoder = OneHotEncoder({'animal': 2, 'color': 1}, ['weight', 'height'])
+
+    data = [{'animal': 'cat', 'color': 'blue', 'weight': 6.0, 'height': 88.9, 'extra_junk': 'blah'},
+            {'animal': 'cat', 'color': 'red', 'weight': 3.0, 'height': 44.9},
+            {'animal': 'dog', 'color': 'yellow', 'weight': 5.5, 'height': 2.5},
+            {'animal': 'fish', 'color': 'blue', 'weight': 7.0, 'height': 3233.2},
+            {'animal': 'cat', 'color': 'magenta', 'weight': 2.0, 'height': 666.6},
+            {'animal': 'mouse', 'color': 'red', 'weight': 0.0, 'height': 55.5},
+            {'animal': 'mouse', 'color': 'blah', 'weight': 99.9, 'height': 33}]
+
+    encoder.load_from_data_stream(data)
+    package = encoder.package_data()
+
+    expected = {'max_levels_default': 10000,
+                'numeric_cols': ['weight', 'height'],
+                'categorical_n_levels_dict': {'animal': 2, 'color': 1},
+                'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}},
+                'numeric_stats': None}
+
+    assert package == expected
+
+    html_header, form_div = encoder.get_form_html_elements()
+
+    form_tags = ['id="form"', 'schema', 'alpaca', 'script']
+
+    for tag in form_tags:
+        assert tag in form_div
+
+    header_tags = ['jquery', 'bootstrap', 'alpaca', 'script']
+
+    for tag in header_tags:
+        assert tag in html_header
+
+    html_page = encoder.get_form_html_page()
+
+    assert "<html" in html_page
+    assert html_header in html_page
+    assert form_div in html_page

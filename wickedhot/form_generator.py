@@ -1,44 +1,5 @@
-from jinja2 import Template
-import os
-import json
 from wickedhot.one_hot_encode import unknown_level_value
-
-
-def get_templates_text():
-    template_dir = os.path.realpath(os.path.dirname(__file__) + '/templates')
-    template_files = {'alpaca_index': 'alpaca_index.html',
-                      'alpaca_form': 'alpaca_form.html',
-                      'alpaca_header': 'alpaca_header.html',
-                      'alpaca_example_data': 'alpaca_example.json'}
-
-    paths = {key: "%s/%s" % (template_dir, file) for key, file in template_files.items()}
-    templates = {key: open(filename, 'r').read() for key, filename in paths.items()}
-    return templates
-
-
-def generate_alpaca_form(form_data, templates):
-    alpaca_json_data = json.dumps(form_data, indent=2)
-    template = Template(templates['alpaca_form'])
-    return template.render(alpaca_json_data=alpaca_json_data)
-
-
-def generate_alpaca_index(form_data=None, index_file=None):
-    templates = get_templates_text()
-    if form_data is None:
-        templates_text = templates['alpaca_example_data']
-        form_data = json.loads(templates_text)
-
-    form_div = generate_alpaca_form(form_data, templates)
-
-    alpaca_header = templates['alpaca_header']
-    if index_file is None:
-        index_file = 'alpaca_index'
-
-    index_template = Template(templates[index_file])
-
-    index_html = index_template.render(form_div=form_div, alpaca_header=alpaca_header)
-
-    return index_html
+from wickedhot.html_form import form_data_to_form_elements, form_data_to_html_page
 
 
 def encoder_package_to_schema(encoder_package):
@@ -47,9 +8,9 @@ def encoder_package_to_schema(encoder_package):
     stats = encoder_package['numeric_stats']
     for field in encoder_package['numeric_cols']:
         properties[field] = {
-                "type": "number",
-                "title": field.capitalize(),
-                "required": True
+            "type": "number",
+            "title": field.capitalize(),
+            "required": True
         }
 
         if stats is not None:
@@ -80,7 +41,22 @@ def encoder_package_to_schema(encoder_package):
     return schema
 
 
-def encoder_package_to_options(encoder_package):
+def encoder_package_to_options(encoder_package, post_url=None):
+    """
+    :param encoder_package: one hot encoder package
+    :param post_url: url to send form data to on submission
+        default is ''
+        for testing purposes, you may use PUBLIC and it will use
+        "http://httpbin.org/post" which prints the result
+        this is not secure so don't do that with sensitive data
+    :return:
+    """
+
+    if post_url is None:
+        post_url = ''
+
+    if post_url == 'PUBLIC':
+        post_url = "http://httpbin.org/post"
 
     fields = {}
     for field in encoder_package['numeric_cols']:
@@ -106,7 +82,7 @@ def encoder_package_to_options(encoder_package):
     options = {
         "form": {
             "attributes": {
-                "action": "http://httpbin.org/post",
+                "action": post_url,
                 "method": "post"
             },
             "buttons": {
@@ -119,9 +95,20 @@ def encoder_package_to_options(encoder_package):
     return options
 
 
-def encoder_package_to_form_data(encoder_package):
+def encoder_package_to_form_data(encoder_package, post_url=None):
+    """
+    Generate the form
+    :param encoder_package: encoder package dict
+    :param post_url: url to send form data to on submission
+        default is ''
+        for testing purposes, you may use PUBLIC and it will use
+        "http://httpbin.org/post" which prints the result
+        this is not secure so don't do that with sensitive data
+    :return: form data
+    """
+
     schema = encoder_package_to_schema(encoder_package)
-    options = encoder_package_to_options(encoder_package)
+    options = encoder_package_to_options(encoder_package, post_url=post_url)
 
     stats = encoder_package['numeric_stats']
 
@@ -138,20 +125,12 @@ def encoder_package_to_form_data(encoder_package):
     return form_data
 
 
-def generate_form(encoder_package):
-    form_data = encoder_package_to_form_data(encoder_package)
-    index_html = generate_alpaca_index(form_data=form_data)
-    return index_html
+def encoder_package_to_form_elements(encoder_package, post_url=None):
+    form_data = encoder_package_to_form_data(encoder_package, post_url=post_url)
+    header_text, form_div = form_data_to_form_elements(form_data)
+    return header_text, form_div
 
 
-def test_generate_form():
-    index_html = generate_alpaca_index()
-    filename = 'test_generate_form_example.html'
-    fp = open(filename, 'w')
-    fp.write(index_html)
-    fp.close()
-    print('wrote test file: %s' % filename)
-
-
-if __name__ == "__main__":
-    test_generate_form()
+def encoder_package_to_html_page(encoder_package, post_url=None):
+    form_data = encoder_package_to_form_data(encoder_package, post_url=post_url)
+    return form_data_to_html_page(form_data)

@@ -1,5 +1,4 @@
-import json
-from wickedhot.form_generator import generate_form
+from wickedhot.form_generator import encoder_package_to_html_page
 
 
 def test_form_generation():
@@ -16,19 +15,28 @@ def test_form_generation():
                 'categorical_n_levels_dict': {'animal': 2, 'color': 1},
                 'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}}}
 
-    index_html = generate_form(packaged)
+    index_html = encoder_package_to_html_page(packaged)
 
     assert isinstance(index_html, str)
     assert "<html" in index_html
 
-    filename = 'junk_index.html'
-    fp = open(filename, 'w')
-    fp.write(index_html)
-    fp.close()
+    # ensure default URL is not public
+    assert "http://httpbin.org/post" not in index_html
 
-    print("wrote: %s" % filename)
+    index_html = encoder_package_to_html_page(packaged, post_url='PUBLIC')
 
+    assert isinstance(index_html, str)
+    assert "<html" in index_html
+    # ensure default URL is using public debugging option
+    assert "http://httpbin.org/post" in index_html
 
+    write_page = True
+    if write_page:
+        filename = 'junk_index.html'
+        fp = open(filename, 'w')
+        fp.write(index_html)
+        fp.close()
 
+        print("wrote: %s" % filename)
 
 

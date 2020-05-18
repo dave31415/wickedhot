@@ -1,6 +1,7 @@
 import json
 from random import Random
 from wickedhot import one_hot_encode as ohe
+from wickedhot.form_generator import encoder_package_to_form_elements, encoder_package_to_html_page
 
 
 class OneHotEncoder:
@@ -97,3 +98,20 @@ class OneHotEncoder:
 
     def decode_data(self, encoded_data_stream):
         return list(self.decode_data_stream(encoded_data_stream))
+
+    def get_form_html_elements(self, post_url=None):
+        """
+        Get html header text and form div text to be injected into an html page
+        via templating (in the header section and body respectively)
+        :param post_url: url that form will be submitted to on submission
+        :return: html_header, div_text
+        """
+        return encoder_package_to_form_elements(self.package_data(), post_url=post_url)
+
+    def get_form_html_page(self, post_url=None):
+        """
+        Return entire functioning html page using the default simple index.html template
+        :param post_url: url that form will be submitted to on submission
+        :return:
+        """
+        return encoder_package_to_html_page(self.package_data(), post_url=post_url)
