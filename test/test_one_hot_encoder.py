@@ -232,7 +232,7 @@ def test_inversion_more_complicated_with_max_levels():
     assert data_decoded == expected
 
 
-def run_example(stats=False):
+def get_round_trip_decoded(stats=False):
     encoder = OneHotEncoder({'animal': 2, 'color': 1}, ['weight', 'height'])
 
     data = [{'animal': 'cat', 'color': 'blue', 'weight': 6.0, 'height': 88.9, 'extra_junk': 'blah'},
@@ -248,50 +248,63 @@ def run_example(stats=False):
     encoded_data = encoder.encode_data(data)
     data_decoded = encoder.decode_data(encoded_data)
 
-    expected = [{'height': 88.9, 'weight': 6.0, 'animal': 'cat', 'color': 'blue'},
-                {'height': 44.9, 'weight': 3.0, 'animal': 'cat', 'color': 'UNKNOWN_CATEGORICAL_LEVEL'},
-                {'height': 2.5, 'weight': 5.5, 'color': 'UNKNOWN_CATEGORICAL_LEVEL', 'animal': 'UNKNOWN_CATEGORICAL_LEVEL'},
-                {'height': 3233.2, 'weight': 7.0, 'color': 'blue', 'animal': 'UNKNOWN_CATEGORICAL_LEVEL'},
-                {'height': 666.6, 'weight': 2.0, 'animal': 'cat', 'color': 'UNKNOWN_CATEGORICAL_LEVEL'},
-                {'height': 55.5, 'weight': 0.0, 'animal': 'mouse', 'color': 'UNKNOWN_CATEGORICAL_LEVEL'},
-                {'height': 33, 'weight': 99.9, 'animal': 'mouse', 'color': 'UNKNOWN_CATEGORICAL_LEVEL'}]
-
-    assert data_decoded == expected
-
     # add number stats?
     if stats:
         encoder.add_numeric_stats(data)
 
     # check the package
     packaged = encoder.package_data()
-    return packaged
+
+    return data_decoded, packaged
 
 
 def test_inversion_more_complicated_with_max_levels_diff():
-    packaged = run_example(stats=False)
+    data_decoded, packaged = get_round_trip_decoded(stats=False)
 
-    expected = {'max_levels_default': 10000,
-                'numeric_cols': ['weight', 'height'],
-                'categorical_n_levels_dict': {'animal': 2, 'color': 1},
-                'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}},
-                'numeric_stats': None}
+    decoded_expected = [{'height': 88.9, 'weight': 6.0, 'animal': 'cat', 'color': 'blue'},
+                        {'height': 44.9, 'weight': 3.0, 'animal': 'cat', 'color': 'UNKNOWN_CATEGORICAL_LEVEL'},
+                        {'height': 2.5, 'weight': 5.5, 'color': 'UNKNOWN_CATEGORICAL_LEVEL',
+                         'animal': 'UNKNOWN_CATEGORICAL_LEVEL'},
+                        {'height': 3233.2, 'weight': 7.0, 'color': 'blue', 'animal': 'UNKNOWN_CATEGORICAL_LEVEL'},
+                        {'height': 666.6, 'weight': 2.0, 'animal': 'cat', 'color': 'UNKNOWN_CATEGORICAL_LEVEL'},
+                        {'height': 55.5, 'weight': 0.0, 'animal': 'mouse', 'color': 'UNKNOWN_CATEGORICAL_LEVEL'},
+                        {'height': 33, 'weight': 99.9, 'animal': 'mouse', 'color': 'UNKNOWN_CATEGORICAL_LEVEL'}]
 
-    assert packaged == expected
+    assert data_decoded == decoded_expected
+
+    package_expected = {'max_levels_default': 10000,
+                        'numeric_cols': ['weight', 'height'],
+                        'categorical_n_levels_dict': {'animal': 2, 'color': 1},
+                        'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}},
+                        'numeric_stats': None}
+
+    assert packaged == package_expected
 
 
-def test_inversion_more_complicated_with_max_levels_diff_and_numeric_stats():
-    packaged = run_example(stats=True)
+def test_inversion_more_complicated_w_max_levels_diff_and_numeric_stats():
+    data_decoded, packaged = get_round_trip_decoded(stats=True)
+
+    decoded_expected = [{'height': 88.9, 'weight': 6.0, 'animal': 'cat', 'color': 'blue'},
+                        {'height': 44.9, 'weight': 3.0, 'animal': 'cat', 'color': 'UNKNOWN_CATEGORICAL_LEVEL'},
+                        {'height': 2.5, 'weight': 5.5, 'color': 'UNKNOWN_CATEGORICAL_LEVEL',
+                         'animal': 'UNKNOWN_CATEGORICAL_LEVEL'},
+                        {'height': 3233.2, 'weight': 7.0, 'color': 'blue', 'animal': 'UNKNOWN_CATEGORICAL_LEVEL'},
+                        {'height': 666.6, 'weight': 2.0, 'animal': 'cat', 'color': 'UNKNOWN_CATEGORICAL_LEVEL'},
+                        {'height': 55.5, 'weight': 0.0, 'animal': 'mouse', 'color': 'UNKNOWN_CATEGORICAL_LEVEL'},
+                        {'height': 33, 'weight': 99.9, 'animal': 'mouse', 'color': 'UNKNOWN_CATEGORICAL_LEVEL'}]
+
+    assert data_decoded == decoded_expected
 
     stats = {'weight': {'min': 0.0, 'max': 99.9, 'mean': 17.62857142857143, 'median': 5.5},
              'height': {'min': 2.5, 'max': 3233.2, 'mean': 589.2285714285715, 'median': 55.5}}
 
-    expected = {'max_levels_default': 10000,
-                'numeric_cols': ['weight', 'height'],
-                'categorical_n_levels_dict': {'animal': 2, 'color': 1},
-                'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}},
-                'numeric_stats': stats}
+    package_expected = {'max_levels_default': 10000,
+                        'numeric_cols': ['weight', 'height'],
+                        'categorical_n_levels_dict': {'animal': 2, 'color': 1},
+                        'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}},
+                        'numeric_stats': stats}
 
-    assert packaged == expected
+    assert packaged == package_expected
 
 
 def test_html_form():

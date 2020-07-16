@@ -2,11 +2,45 @@ from wickedhot.one_hot_encode import unknown_level_value
 from wickedhot.html_form import form_data_to_form_elements, form_data_to_html_page
 
 
-def encoder_package_to_schema(encoder_package):
+def process_extras(extra_numerics, extra_categoricals, omitted_fields):
+    if omitted_fields is None:
+        omitted_fields = []
 
+    if extra_numerics is None:
+        extra_numerics = {}
+    else:
+        extra_numerics = {k: v for k, v in extra_numerics.items() if k not in omitted_fields}
+
+    if extra_categoricals is None:
+        extra_categoricals = {}
+    else:
+        extra_categoricals = {k: v for k, v in extra_categoricals.items()
+                              if k not in omitted_fields}
+        for k, v in extra_categoricals.items():
+            if unknown_level_value not in v:
+                v.append(unknown_level_value)
+
+    return extra_numerics, extra_categoricals, omitted_fields
+
+
+def encoder_package_to_schema(encoder_package,
+                              extra_numerics=None,
+                              extra_categoricals=None,
+                              omitted_fields=None):
+
+    extra_numerics, extra_categoricals, omitted_fields = process_extras(extra_numerics,
+                                                                        extra_categoricals,
+                                                                        omitted_fields)
     properties = {}
     stats = encoder_package['numeric_stats']
-    for field in encoder_package['numeric_cols']:
+
+    # numerics
+    numeric_fields = encoder_package['numeric_cols'] + list(extra_numerics.keys())
+
+    for field in numeric_fields:
+        if field in omitted_fields:
+            continue
+
         properties[field] = {
             "type": "number",
             "title": field.capitalize(),
@@ -14,16 +48,30 @@ def encoder_package_to_schema(encoder_package):
         }
 
         if stats is not None:
-            properties[field]['minimum'] = stats[field]['min']
-            properties[field]['maximum'] = stats[field]['max']
+            if field in stats:
+                properties[field]['minimum'] = stats[field]['min']
+                properties[field]['maximum'] = stats[field]['max']
+
+    # categoricals
 
     encoder_dicts = encoder_package['one_hot_encoder_dicts']
 
     for field, value_dicts in encoder_dicts.items():
+        if field in omitted_fields:
+            continue
+
         values = sorted(value_dicts.items(), key=lambda x: x[1])
         levels = [v[0] for v in values]
         levels = levels + [unknown_level_value]
 
+        properties[field] = {
+            "type": "string",
+            "title": field.capitalize(),
+            "required": True,
+            "enum": levels
+        }
+
+    for field, levels in extra_categoricals.items():
         properties[field] = {
             "type": "string",
             "title": field.capitalize(),
@@ -41,7 +89,10 @@ def encoder_package_to_schema(encoder_package):
     return schema
 
 
-def encoder_package_to_options(encoder_package, post_url=None):
+def encoder_package_to_options(encoder_package, post_url=None,
+                               extra_numerics=None,
+                               extra_categoricals=None,
+                               omitted_fields=None):
     """
     :param encoder_package: one hot encoder package
     :param post_url: url to send form data to on submission
@@ -52,6 +103,10 @@ def encoder_package_to_options(encoder_package, post_url=None):
     :return:
     """
 
+    extra_numerics, extra_categoricals, omitted_fields = process_extras(extra_numerics,
+                                                                        extra_categoricals,
+                                                                        omitted_fields)
+
     if post_url is None:
         post_url = ''
 
@@ -59,7 +114,13 @@ def encoder_package_to_options(encoder_package, post_url=None):
         post_url = "http://httpbin.org/post"
 
     fields = {}
-    for field in encoder_package['numeric_cols']:
+
+    numeric_cols = encoder_package['numeric_cols'] + list(extra_numerics.keys())
+
+    for field in numeric_cols:
+        if field in omitted_fields:
+            continue
+
         fields[field] = {
             "size": 20,
             # "helper": "Please enter %s" % field
@@ -68,13 +129,22 @@ def encoder_package_to_options(encoder_package, post_url=None):
     encoder_dicts = encoder_package['one_hot_encoder_dicts']
 
     for field, value_dicts in encoder_dicts.items():
+        if field in omitted_fields:
+            continue
+
         values = sorted(value_dicts.items(), key=lambda x: x[1])
         levels = [v[0] for v in values]
         levels = levels + [unknown_level_value]
 
         fields[field] = {
             "type": "select",
-            # "helper": "Select %s" % field,
+            "optionLabels": levels,
+            "sort": False
+        }
+
+    for field, levels in extra_categoricals.items():
+        fields[field] = {
+            "type": "select",
             "optionLabels": levels,
             "sort": False
         }
@@ -95,7 +165,10 @@ def encoder_package_to_options(encoder_package, post_url=None):
     return options
 
 
-def encoder_package_to_form_data(encoder_package, post_url=None):
+def encoder_package_to_form_data(encoder_package, post_url=None,
+                                 extra_numerics=None,
+                                 extra_categoricals=None,
+                                 omitted_fields=None):
     """
     Generate the form
     :param encoder_package: encoder package dict
@@ -107,15 +180,31 @@ def encoder_package_to_form_data(encoder_package, post_url=None):
     :return: form data
     """
 
-    schema = encoder_package_to_schema(encoder_package)
-    options = encoder_package_to_options(encoder_package, post_url=post_url)
+    schema = encoder_package_to_schema(encoder_package,
+                                       extra_numerics=extra_numerics,
+                                       extra_categoricals=extra_categoricals,
+                                       omitted_fields=omitted_fields)
+
+    options = encoder_package_to_options(encoder_package, post_url=post_url,
+                                         extra_numerics=extra_numerics,
+                                         extra_categoricals=extra_categoricals,
+                                         omitted_fields=omitted_fields)
+
+    extra_numerics, extra_categoricals, omitted_fields = process_extras(extra_numerics,
+                                                                        extra_categoricals,
+                                                                        omitted_fields)
 
     stats = encoder_package['numeric_stats']
 
     if stats is None:
-        data = {field: 0 for field in encoder_package['numeric_cols']}
+        data = {field: 0 for field in encoder_package['numeric_cols'] if field not in omitted_fields}
     else:
-        data = {field: float("%0.2f" % stats[field]['median']) for field in encoder_package['numeric_cols']}
+        data = {field: float("%0.2f" % stats[field]['median'])
+                for field in encoder_package['numeric_cols']
+                if field not in omitted_fields}
+
+    for field, default in extra_numerics.items():
+        data[field] = default
 
     form_data = {"schema": schema,
                  "options": options,
@@ -125,8 +214,16 @@ def encoder_package_to_form_data(encoder_package, post_url=None):
     return form_data
 
 
-def encoder_package_to_form_elements(encoder_package, post_url=None, initial_values=None):
-    form_data = encoder_package_to_form_data(encoder_package, post_url=post_url)
+def encoder_package_to_form_elements(encoder_package, post_url=None, initial_values=None,
+                                     extra_numerics=None,
+                                     extra_categoricals=None,
+                                     omitted_fields=None):
+
+    form_data = encoder_package_to_form_data(encoder_package, post_url=post_url,
+                                             extra_numerics=extra_numerics,
+                                             extra_categoricals=extra_categoricals,
+                                             omitted_fields=omitted_fields)
+
     if initial_values is not None:
         form_data['data'] = initial_values
 
@@ -134,8 +231,15 @@ def encoder_package_to_form_elements(encoder_package, post_url=None, initial_val
     return header_text, form_div
 
 
-def encoder_package_to_html_page(encoder_package, post_url=None, initial_values=None):
-    form_data = encoder_package_to_form_data(encoder_package, post_url=post_url)
+def encoder_package_to_html_page(encoder_package, post_url=None, initial_values=None,
+                                 extra_numerics=None,
+                                 extra_categoricals=None,
+                                 omitted_fields=None):
+
+    form_data = encoder_package_to_form_data(encoder_package, post_url=post_url,
+                                             extra_numerics=extra_numerics,
+                                             extra_categoricals=extra_categoricals,
+                                             omitted_fields=omitted_fields)
     if initial_values is not None:
         form_data['data'] = initial_values
 

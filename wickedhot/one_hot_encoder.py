@@ -14,6 +14,7 @@ class OneHotEncoder:
         self.decoder = None
         self.index_lookup = None
         self.numeric_stats = None
+
         if isinstance(categorical_cols, list):
             self.categorical_n_levels_dict = {k: self.max_levels_default for k in categorical_cols}
         elif isinstance(categorical_cols, dict):
@@ -99,7 +100,10 @@ class OneHotEncoder:
     def decode_data(self, encoded_data_stream):
         return list(self.decode_data_stream(encoded_data_stream))
 
-    def get_form_html_elements(self, post_url=None, initial_values=None):
+    def get_form_html_elements(self, post_url=None, initial_values=None,
+                               extra_numerics=None,
+                               extra_categoricals=None,
+                               omitted_fields=None):
         """
         Get html header text and form div text to be injected into an html page
         via templating (in the header section and body respectively)
@@ -110,9 +114,15 @@ class OneHotEncoder:
         """
         return encoder_package_to_form_elements(self.package_data(),
                                                 post_url=post_url,
-                                                initial_values=initial_values)
+                                                initial_values=initial_values,
+                                                extra_numerics=extra_numerics,
+                                                extra_categoricals=extra_categoricals,
+                                                omitted_fields=omitted_fields)
 
-    def get_form_html_page(self, post_url=None, initial_values=None):
+    def get_form_html_page(self, post_url=None, initial_values=None,
+                           extra_numerics=None,
+                           extra_categoricals=None,
+                           omitted_fields=None):
         """
         Return entire functioning html page using the default simple index.html template
         :param post_url: url that form will be submitted to on submission
@@ -122,4 +132,7 @@ class OneHotEncoder:
         """
         return encoder_package_to_html_page(self.package_data(),
                                             post_url=post_url,
-                                            initial_values=initial_values)
+                                            initial_values=initial_values,
+                                            extra_numerics=extra_numerics,
+                                            extra_categoricals=extra_categoricals,
+                                            omitted_fields=omitted_fields)
