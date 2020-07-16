@@ -5,10 +5,11 @@ from wickedhot.form_generator import encoder_package_to_form_elements, encoder_p
 
 
 class OneHotEncoder:
-    def __init__(self, categorical_cols, numeric_cols, max_levels_default=10000):
+    def __init__(self, categorical_cols, numeric_cols, max_levels_default=10000, omit_cols=None):
         assert max_levels_default > 0
         self.max_levels_default = max_levels_default
         self.numeric_cols = numeric_cols
+        self.omit_cols = omit_cols
         self.one_hot_encoder_dicts = None
         self.encoder = None
         self.decoder = None
@@ -40,7 +41,8 @@ class OneHotEncoder:
                 'numeric_cols': self.numeric_cols,
                 'categorical_n_levels_dict': self.categorical_n_levels_dict,
                 'one_hot_encoder_dicts': self.one_hot_encoder_dicts,
-                'numeric_stats': self.numeric_stats}
+                'numeric_stats': self.numeric_stats,
+                'omit_cols': self.omit_cols}
 
         return data
 
@@ -51,7 +53,10 @@ class OneHotEncoder:
     def load_from_packaged_data(self, data_object):
         self.max_levels_default = data_object['max_levels_default']
         self.numeric_cols = data_object['numeric_cols']
+        self.categorical_n_levels_dict = data_object['categorical_n_levels_dict']
         self.one_hot_encoder_dicts = data_object['one_hot_encoder_dicts']
+        self.numeric_stats = data_object['numeric_stats']
+        self.omit_cols = data_object['omit_cols']
 
         self._get_encoder_decoder()
 
@@ -62,7 +67,10 @@ class OneHotEncoder:
         self.load_from_packaged_data(packaged_data)
 
     def _get_encoder_decoder(self):
-        self.index_lookup = ohe.get_key_val_pair_to_index_lookup(self.one_hot_encoder_dicts, self.numeric_cols)
+        self.index_lookup = ohe.get_key_val_pair_to_index_lookup(self.one_hot_encoder_dicts,
+                                                                 self.numeric_cols,
+                                                                 omit_keys=self.omit_cols)
+
         self.index_lookup_rev = {v: k for k, v in self.index_lookup.items()}
         self.encoder, self.decoder = ohe.get_line_encoder_and_decoder(self.index_lookup)
 

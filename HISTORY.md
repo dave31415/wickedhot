@@ -15,6 +15,12 @@ version 0.1.6
 HTML form generation
 
 July 16, 2020
+version 0.2.0
 Added functionality to form generation to omit fields and add extra ones. 
 Useful when you have dropped base features prior to endcoding and want them back
 or just want to upload other user supplied info.
+
+July 16, 2020
+version 0.2.1
+Added omit_cols so some columns can have encoding info calculated 
+(useful for forms for example) but will not produce encoded variables.

@@ -43,9 +43,12 @@ def get_one_hot_encoder_dicts_from_data_stream(stream_of_dicts, categorical_n_le
     return {k: {val[0]: i for i, val in enumerate(most_commons[k])} for k in keys}
 
 
-def get_key_val_pair_to_index_lookup(encoder_dict, non_encoded_keys):
-    encoded_keys = sorted(encoder_dict.keys())
-    non_enc_keys = sorted(non_encoded_keys)
+def get_key_val_pair_to_index_lookup(encoder_dict, non_encoded_keys, omit_keys=None):
+    if omit_keys is None:
+        omit_keys = []
+
+    encoded_keys = [k for k in sorted(encoder_dict.keys()) if k not in omit_keys]
+    non_enc_keys = [k for k in sorted(non_encoded_keys) if k not in omit_keys]
 
     index = {k: i for i, k in enumerate(non_enc_keys)}
 
