@@ -1,6 +1,8 @@
 from wickedhot.one_hot_encode import unknown_level_value
 from wickedhot.html_form import form_data_to_form_elements, form_data_to_html_page
 
+LEVELS_MAX_FOR_DROP_DOWN = 500
+
 
 def process_extras(extra_numerics, extra_categoricals, omitted_fields):
     if omitted_fields is None:
@@ -62,14 +64,17 @@ def encoder_package_to_schema(encoder_package,
 
         values = sorted(value_dicts.items(), key=lambda x: x[1])
         levels = [v[0] for v in values]
+        n_levels = len(levels)
         levels = levels + [unknown_level_value]
 
         properties[field] = {
             "type": "string",
             "title": field.capitalize(),
-            "required": True,
-            "enum": levels
+            "required": True
         }
+
+        if n_levels < LEVELS_MAX_FOR_DROP_DOWN:
+            properties[field]["enum"] = levels
 
     for field, levels in extra_categoricals.items():
         properties[field] = {
@@ -122,8 +127,7 @@ def encoder_package_to_options(encoder_package, post_url=None,
             continue
 
         fields[field] = {
-            "size": 20,
-            # "helper": "Please enter %s" % field
+            "size": 20
         }
 
     encoder_dicts = encoder_package['one_hot_encoder_dicts']
@@ -134,13 +138,18 @@ def encoder_package_to_options(encoder_package, post_url=None,
 
         values = sorted(value_dicts.items(), key=lambda x: x[1])
         levels = [v[0] for v in values]
+
+        n_levels = len(levels)
+
         levels = levels + [unknown_level_value]
 
-        fields[field] = {
-            "type": "select",
-            "optionLabels": levels,
-            "sort": False
-        }
+        if n_levels < LEVELS_MAX_FOR_DROP_DOWN:
+            fields[field] = {
+                "type": "select",
+                "optionLabels": levels,
+                "sort": False}
+        else:
+            fields[field] = {"size": 20}
 
     for field, levels in extra_categoricals.items():
         fields[field] = {

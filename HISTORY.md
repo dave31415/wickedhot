@@ -24,3 +24,7 @@ July 16, 2020
 version 0.2.1
 Added omit_cols so some columns can have encoding info calculated 
 (useful for forms for example) but will not produce encoded variables.
+
+July 16, 2020
+version 0.2.2
+Convert categorical with too many levels from drop down to input

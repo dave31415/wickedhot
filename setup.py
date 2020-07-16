@@ -11,7 +11,7 @@ with open('HISTORY.md') as history_file:
 
 setup_args = dict(
     name='wickedhot',
-    version='0.2.1',
+    version='0.2.2',
     description='Wicked easy one-hot-encoding in pure python with (mostly) no dependencies',
     long_description_content_type="text/markdown",
     long_description=README + '\n\n' + HISTORY,
