@@ -28,3 +28,7 @@ Added omit_cols so some columns can have encoding info calculated
 July 16, 2020
 version 0.2.2
 Convert categorical with too many levels from drop down to input
+
+July 28, 2020
+version 0.2.3
+Fixed bug in reservoir sampler
