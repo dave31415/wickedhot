@@ -36,11 +36,11 @@ def update_res_samples(res_samples, row_index, field, value, num_samples, random
     :param random_generator: random.Random() instance, be sure to set seed
     :return:
     """
-    if row_index + 1 <= num_samples:
+    if row_index < num_samples:
         res_samples[field].append(value)
     else:
         probability = num_samples/(row_index + 1)
         ramdom_number = random_generator.random()
         if ramdom_number < probability:
-            index = random_generator.randint(0, num_samples)
+            index = random_generator.randint(0, num_samples - 1)
             res_samples[field][index] = value
