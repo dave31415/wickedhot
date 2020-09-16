@@ -51,8 +51,9 @@ def encoder_package_to_schema(encoder_package,
 
         if stats is not None:
             if field in stats:
-                properties[field]['minimum'] = stats[field]['min']
-                properties[field]['maximum'] = stats[field]['max']
+                pass
+                # properties[field]['minimum'] = stats[field]['min']
+                # properties[field]['maximum'] = stats[field]['max']
 
     # categoricals
 
@@ -205,10 +206,16 @@ def encoder_package_to_form_data(encoder_package, post_url=None,
 
     stats = encoder_package['numeric_stats']
 
+    def default_value(stats, field):
+        value = stats[field]['median']
+        if abs(value) > 1000:
+            value = int(value)
+        return value
+
     if stats is None:
         data = {field: 0 for field in encoder_package['numeric_cols'] if field not in omitted_fields}
     else:
-        data = {field: float("%0.2f" % stats[field]['median'])
+        data = {field: float("%0.2f" % default_value(stats, field))
                 for field in encoder_package['numeric_cols']
                 if field not in omitted_fields}
 
