@@ -19,7 +19,8 @@ class OneHotEncoder:
         if isinstance(categorical_cols, list):
             self.categorical_n_levels_dict = {k: self.max_levels_default for k in categorical_cols}
         elif isinstance(categorical_cols, dict):
-            assert min(list(categorical_cols.values())) > 0
+            if len(categorical_cols) > 0:
+                assert min(list(categorical_cols.values())) > 0
             self.categorical_n_levels_dict = categorical_cols
         else:
             raise ValueError('categorical_cols must be a list or dictionary')
