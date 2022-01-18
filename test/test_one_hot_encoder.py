@@ -277,7 +277,9 @@ def test_inversion_more_complicated_with_max_levels_diff():
                         'categorical_n_levels_dict': {'animal': 2, 'color': 1},
                         'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}},
                         'numeric_stats': None,
-                        'omit_cols': None}
+                        'omit_cols': None,
+                        'default_numeric': -999,
+                        'failed_numeric_conversion_stats': {}}
 
     assert packaged == package_expected
 
@@ -304,7 +306,9 @@ def test_inversion_more_complicated_w_max_levels_diff_and_numeric_stats():
                         'categorical_n_levels_dict': {'animal': 2, 'color': 1},
                         'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}},
                         'numeric_stats': stats,
-                        'omit_cols': None}
+                        'omit_cols': None,
+                        'default_numeric': -999,
+                        'failed_numeric_conversion_stats': {}}
 
     assert packaged == package_expected
 
@@ -330,7 +334,9 @@ def test_inversion_with_omit_cols():
                         'categorical_n_levels_dict': {'animal': 2, 'color': 1},
                         'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}},
                         'numeric_stats': stats,
-                        'omit_cols': ['color']}
+                        'omit_cols': ['color'],
+                        'default_numeric': -999,
+                        'failed_numeric_conversion_stats': {}}
 
     assert packaged == package_expected
 
@@ -354,7 +360,9 @@ def test_html_form():
                 'categorical_n_levels_dict': {'animal': 2, 'color': 1},
                 'one_hot_encoder_dicts': {'animal': {'cat': 0, 'mouse': 1}, 'color': {'blue': 0}},
                 'numeric_stats': None,
-                'omit_cols': None}
+                'omit_cols': None,
+                'default_numeric': -999,
+                'failed_numeric_conversion_stats': {}}
 
     assert package == expected
 
@@ -375,3 +383,75 @@ def test_html_form():
     assert "<html" in html_page
     assert html_header in html_page
     assert form_div in html_page
+
+
+def test_load_from_data_encodes_data_correctly_with_strings():
+    encoder = OneHotEncoder(['animal', 'color'], ['weight'], max_levels_default=100)
+
+    data = [{'animal': 'cat', 'color': 'blue', 'weight': '6.0'},
+            {'animal': 'cat', 'color': 'red', 'weight': '3.0'},
+            {'animal': 'dog', 'color': 'yellow', 'weight': 5.5},
+            {'animal': 'fish', 'color': 'blue', 'weight': 7.0},
+            {'animal': 'cat', 'color': 'magenta', 'weight': 2.0},
+            {'animal': 'mouse', 'color': 'purple', 'weight': 0.0},
+            {'animal': 'mouse', 'color': 'black', 'weight': 99.9}]
+
+    encoder.load_from_data_stream(data)
+
+    encoded_data = [encoder.encode_row(row) for row in data]
+    assert len(encoded_data) == len(data)
+    assert len(encoded_data[0]) != len(data[0])
+
+    first_row = encoded_data[0]
+
+    expected = [6.0,  # weight is numeric and comes first
+                1.0,  # animal is first categorical and cat is the most common, first row is cat
+                0.0,  # animal, mouse is next most common, not a mouse
+                0.0,  # animal, dog and fish tied for frequency but dog first alphabetically
+                0.0,  # animal, fish, cat is not a fish
+                1.0,  # color is next categorical alphabetically and blue is most common, first row blue
+                0.0,  # black
+                0.0,  # magenta
+                0.0,  # purple
+                0.0,  # red
+                0.0]  # yellow
+    assert first_row == expected
+
+    second_row = encoded_data[1]
+
+    expected = [3.0,  # weight is numeric and comes first
+                1.0,  # animal is first categorical and cat is the most common, first row is cat
+                0.0,  # animal, mouse is next most common, not a mouse
+                0.0,  # animal, dog and fish tied for frequency but dog first alphabetically
+                0.0,  # animal, fish, cat is not a fish
+                0.0,  # color is next categorical alphabetically and blue is most common, first row blue
+                0.0,  # black next alphabetically for ones with frequency 1
+                0.0,  # magenta next
+                0.0,  # purple
+                1.0,  # red, this is red
+                0.0]  # yellow
+    assert second_row == expected
+
+    last_row = encoded_data[-1]
+
+    expected = [99.9,  # weight is numeric and comes first
+                0.0,  # animal is first categorical and cat is the most common, first row is cat
+                1.0,  # animal, mouse is next most common, not a mouse
+                0.0,  # animal, dog and fish tied for frequency but dog first alphabetically
+                0.0,  # animal, fish, cat is not a fish
+                0.0,  # color is next categorical alphabetically and blue is most common, first row blue
+                1.0,  # black next alphabetically for ones with frequency 1, this one black
+                0.0,  # magenta next
+                0.0,  # purple
+                0.0,  # red
+                0.0]  # yellow
+
+    expected_total = [[6.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                      [3.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+                      [5.5, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+                      [7.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                      [2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+                      [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                      [99.9, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0]]
+
+    assert encoded_data == expected_total

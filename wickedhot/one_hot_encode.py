@@ -1,6 +1,7 @@
 from collections import Counter
 from statistics import median
 from wickedhot.res_sample import update_res_samples, initialize_res_samples
+from wickedhot.transform_stream import transform_stream
 
 unknown_level_value = 'UNKNOWN_CATEGORICAL_LEVEL'
 
@@ -134,6 +135,9 @@ def fill_in_unknown_levels(decoded_line, all_cols):
 
 
 def get_numeric_stats(stream_of_dicts, numeric_cols, random_generator):
+
+    stream_of_dicts = transform_stream(stream_of_dicts, numeric_cols)
+
     num_samples = 100
     res_samples = initialize_res_samples(numeric_cols)
 
